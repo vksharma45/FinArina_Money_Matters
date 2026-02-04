@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class AssetHistoryServiceTest {
 
@@ -49,5 +49,20 @@ class AssetHistoryServiceTest {
         assertEquals(1, resp.size());
         assertEquals(1L, resp.get(0).getHistoryId());
         assertEquals(ActionType.BUY, resp.get(0).getActionType());
+    }
+
+    @Test
+    void recordMethods_callRepositorySave() {
+        Asset a = new Asset();
+        a.setAssetId(10L);
+
+        when(assetHistoryRepository.save(any(AssetHistory.class))).thenReturn(new AssetHistory());
+
+        assetHistoryService.recordBuy(a, new BigDecimal("1"), new BigDecimal("10"), "remark");
+        assetHistoryService.recordSell(a, new BigDecimal("1"), new BigDecimal("12"), "remark");
+        assetHistoryService.recordPriceUpdate(a, new BigDecimal("10"), new BigDecimal("11"));
+        assetHistoryService.recordQuantityUpdate(a, new BigDecimal("1"), new BigDecimal("2"));
+
+        verify(assetHistoryRepository, times(4)).save(any(AssetHistory.class));
     }
 }

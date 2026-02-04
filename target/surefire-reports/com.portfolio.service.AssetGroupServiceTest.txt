@@ -1,0 +1,22 @@
+-------------------------------------------------------------------------------
+Test set: com.portfolio.service.AssetGroupServiceTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.483 s <<< FAILURE! -- in com.portfolio.service.AssetGroupServiceTest
+com.portfolio.service.AssetGroupServiceTest.performance_methods_no_mutual_references -- Time elapsed: 0.022 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.portfolio.entity.Portfolio.getPortfolioId()" because the return value of "com.portfolio.entity.Asset.getPortfolio()" is null
+	at com.portfolio.service.AssetGroupService.lambda$getGroupPerformance$0(AssetGroupService.java:177)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:178)
+	at java.base/java.util.HashMap$KeySpliterator.forEachRemaining(HashMap.java:1707)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:575)
+	at java.base/java.util.stream.AbstractPipeline.evaluateToArrayNode(AbstractPipeline.java:260)
+	at java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:616)
+	at java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:622)
+	at java.base/java.util.stream.ReferencePipeline.toList(ReferencePipeline.java:627)
+	at com.portfolio.service.AssetGroupService.getGroupPerformance(AssetGroupService.java:179)
+	at com.portfolio.service.AssetGroupServiceTest.performance_methods_no_mutual_references(AssetGroupServiceTest.java:117)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

@@ -1,0 +1,25 @@
+-------------------------------------------------------------------------------
+Test set: com.portfolio.service.StockCategoryServiceTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 0.283 s <<< FAILURE! -- in com.portfolio.service.StockCategoryServiceTest
+com.portfolio.service.StockCategoryServiceTest.createCategory_success_and_getAll_getCategory -- Time elapsed: 0.010 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.portfolio.dto.request.StockCategoryRequest.getCategoryName()" because "request" is null
+	at com.portfolio.service.StockCategoryService.createCategory(StockCategoryService.java:40)
+	at com.portfolio.service.StockCategoryServiceTest.createCategory_success_and_getAll_getCategory(StockCategoryServiceTest.java:58)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.portfolio.service.StockCategoryServiceTest.getCategoryPerformance_positiveCalculation -- Time elapsed: 0.012 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <20> but was: <40>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.portfolio.service.StockCategoryServiceTest.getCategoryPerformance_positiveCalculation(StockCategoryServiceTest.java:90)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

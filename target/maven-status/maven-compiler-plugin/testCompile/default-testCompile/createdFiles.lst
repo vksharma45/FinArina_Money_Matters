@@ -1,0 +1,9 @@
+com\portfolio\entity\EntitySmokeTest.class
+com\portfolio\controller\AssetControllerTest.class
+com\portfolio\controller\StockCategoryControllerTest.class
+com\portfolio\service\AssetServiceTest.class
+com\portfolio\service\PortfolioServiceTest.class
+com\portfolio\service\AssetHistoryServiceTest.class
+com\portfolio\service\StockCategoryServiceTest.class
+com\portfolio\controller\PortfolioControllerTest.class
+com\portfolio\service\AssetGroupServiceTest.class
