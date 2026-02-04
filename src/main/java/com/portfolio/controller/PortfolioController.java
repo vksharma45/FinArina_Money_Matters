@@ -24,6 +24,7 @@ import java.util.List;
  * DELETE /portfolios/{portfolioId}
  * GET    /portfolios/{portfolioId}/asset-groups/performance
  */
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/portfolios")
 @RequiredArgsConstructor
