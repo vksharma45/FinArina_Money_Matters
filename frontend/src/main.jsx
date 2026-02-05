@@ -1,19 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import './index.css'
-import App from './App.jsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css'; // Your CSS file (optional)
+import App from './App'; // Your main App component
 
-// createRoot(document.getElementById('root')).render(
-//   <StrictMode>
-//     <App />
-//   </StrictMode>,
-// )
+// Get the root element in the HTML (this is the div with id="root")
+const root = ReactDOM.createRoot(document.getElementById('root'));
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
+// Render the app to the root element
+root.render(
+  <React.StrictMode>
     <App />
-  </BrowserRouter>
+  </React.StrictMode>
 );

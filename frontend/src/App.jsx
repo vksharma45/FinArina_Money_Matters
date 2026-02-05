@@ -1,19 +1,35 @@
-import { Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
-import Dashboard from "./pages/Dashboard";
-import PortfolioList from "./pages/PortfolioList";
-import PortfolioDetails from "./pages/PortfolioDetails";
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import { PortfolioProvider } from './context/PortfolioContext'
+import Navbar from './components/common/Navbar'
+import Dashboard from './pages/Dashboard'
+import Portfolios from './pages/Portfolios'
+import Assets from './pages/Assets'
+import AssetGroups from './pages/AssetGroups'
+import CreditCards from './pages/CreditCards'
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/portfolios" element={<PortfolioList />} />
-        <Route path="/portfolio/:id" element={<PortfolioDetails />} />
-      </Routes>
-    </Layout>
-  );
+    <Router>
+      <PortfolioProvider>
+        <div className="app">
+          <Navbar />
+          <main style={{ paddingTop: '80px', minHeight: '100vh' }}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/portfolios" element={<Portfolios />} />
+              <Route path="/portfolios/:portfolioId/assets" element={<Assets />} />
+              <Route path="/groups" element={<AssetGroups />} />
+              <Route path="/credit-cards" element={<CreditCards />} />
+            </Routes>
+          </main>
+          <Toaster position="top-right" />
+        </div>
+      </PortfolioProvider>
+    </Router>
+  )
 }
 
-export default App;
+export default App
