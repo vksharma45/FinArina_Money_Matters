@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { usePortfolio } from '../context/PortfolioContext'
-import { portfolioAPI, assetGroupAPI, creditCardAPI } from '../services/api'
+import { portfolioAPI, assetGroupAPI, creditCardAPI, assetAPI } from '../services/api'
 import Card from '../components/common/Card'
+import AssetAllocationChart from '../components/charts/AssetAllocationChart'
+import ReturnsPerformanceChart from '../components/charts/ReturnsPerformanceChart'
 import { TrendingUp, TrendingDown, Wallet, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const Dashboard = () => {
   const { selectedPortfolio } = usePortfolio()
   const [summary, setSummary] = useState(null)
+  const [assets, setAssets] = useState([])
   const [groupPerformance, setGroupPerformance] = useState([])
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(false)
@@ -24,13 +27,15 @@ const Dashboard = () => {
     try {
       setLoading(true)
 
-      const [summaryRes, groupsRes, alertsRes] = await Promise.all([
+      const [summaryRes, assetsRes, groupsRes, alertsRes] = await Promise.all([
         portfolioAPI.getSummary(selectedPortfolio.portfolioId),
+        assetAPI.getAll(selectedPortfolio.portfolioId),
         assetGroupAPI.getAllPerformance(selectedPortfolio.portfolioId),
         creditCardAPI.getUpcomingDue(selectedPortfolio.portfolioId),
       ])
 
       setSummary(summaryRes.data.data)
+      setAssets(assetsRes.data.data || [])
       setGroupPerformance(groupsRes.data.data || [])
       setAlerts(alertsRes.data.data || [])
     } catch (error) {
@@ -72,7 +77,7 @@ const Dashboard = () => {
   return (
     <div className="container" style={{ paddingTop: '40px' }}>
       <h1 style={{ marginBottom: '24px', fontSize: '28px', fontWeight: 700 }}>
-        Dashboard
+        Dashboard - {selectedPortfolio.portfolioName}
       </h1>
 
       {/* Summary Cards */}
@@ -109,23 +114,22 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Asset Allocation */}
-      {summary?.assetAllocation && Object.keys(summary.assetAllocation).length > 0 && (
-        <Card title="Asset Allocation">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-            {Object.entries(summary.assetAllocation).map(([type, percentage]) => (
-              <div key={type} style={{ padding: '16px', background: '#f9fafb', borderRadius: '8px' }}>
-                <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                  {type.replace('_', ' ')}
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: 600 }}>
-                  {formatPercent(percentage)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+      {/* Charts Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+        {/* Asset Allocation Pie Chart */}
+        {summary?.assetAllocation && Object.keys(summary.assetAllocation).length > 0 && (
+          <Card title="Asset Allocation">
+            <AssetAllocationChart assetAllocation={summary.assetAllocation} />
+          </Card>
+        )}
+
+        {/* Returns Performance Bar Chart */}
+        {assets.length > 0 && (
+          <Card title="Top Performers">
+            <ReturnsPerformanceChart assets={assets} />
+          </Card>
+        )}
+      </div>
 
       {/* Group Performance */}
       {groupPerformance.length > 0 && (

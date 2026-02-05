@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { usePortfolio } from '../context/PortfolioContext'
-import { assetAPI } from '../services/api'
+import { assetAPI, assetGroupAPI } from '../services/api'
 import Card from '../components/common/Card'
 import Modal from '../components/common/Modal'
-import { Plus, Trash2, Edit, ShoppingCart, History } from 'lucide-react'
+import AssetHistoryChart from '../components/charts/AssetHistoryChart'
+import { Plus, Trash2, ShoppingCart, TrendingUp, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const Assets = () => {
@@ -12,11 +13,17 @@ const Assets = () => {
   const { selectedPortfolio, stockCategories } = usePortfolio()
   const [assets, setAssets] = useState([])
   const [wishlist, setWishlist] = useState([])
+  const [allGroups, setAllGroups] = useState([])
   const [loading, setLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false)
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false)
   const [selectedAsset, setSelectedAsset] = useState(null)
-  
+  const [assetHistory, setAssetHistory] = useState([])
+  const [assetGroups, setAssetGroups] = useState([])
+  const [selectedGroupIds, setSelectedGroupIds] = useState([])
+
   const [formData, setFormData] = useState({
     assetName: '',
     assetType: 'STOCK',
@@ -36,6 +43,7 @@ const Assets = () => {
   useEffect(() => {
     if (portfolioId) {
       loadAssets()
+      loadAllGroups()
     }
   }, [portfolioId])
 
@@ -46,7 +54,7 @@ const Assets = () => {
         assetAPI.getAll(portfolioId),
         assetAPI.getWishlist(portfolioId),
       ])
-      
+
       const allAssets = assetsRes.data.data || []
       setAssets(allAssets.filter(a => !a.isWishlist))
       setWishlist(allAssets.filter(a => a.isWishlist))
@@ -54,6 +62,37 @@ const Assets = () => {
       toast.error('Failed to load assets')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadAllGroups = async () => {
+    try {
+      const response = await assetGroupAPI.getAll()
+      setAllGroups(response.data.data || [])
+    } catch (error) {
+      console.error('Failed to load groups')
+    }
+  }
+
+  const loadAssetHistory = async (assetId) => {
+    try {
+      const response = await assetAPI.getHistory(assetId)
+      setAssetHistory(response.data.data || [])
+    } catch (error) {
+      toast.error('Failed to load asset history')
+      console.error(error)
+    }
+  }
+
+  const loadAssetGroups = async (assetId) => {
+    try {
+      const response = await assetAPI.getGroups(assetId)
+      const groups = response.data.data || []
+      setAssetGroups(groups)
+      setSelectedGroupIds(groups.map(g => g.groupId))
+    } catch (error) {
+      toast.error('Failed to load asset groups')
+      console.error(error)
     }
   }
 
@@ -67,7 +106,7 @@ const Assets = () => {
         currentPrice: parseFloat(formData.currentPrice),
         stockCategoryId: formData.assetType === 'STOCK' ? parseInt(formData.stockCategoryId) : null,
       }
-      
+
       await assetAPI.create(portfolioId, payload)
       await loadAssets()
       setIsModalOpen(false)
@@ -105,6 +144,42 @@ const Assets = () => {
       } catch (error) {
         toast.error(error.message)
       }
+    }
+  }
+
+  const handleViewHistory = async (asset) => {
+    setSelectedAsset(asset)
+    await loadAssetHistory(asset.assetId)
+    setIsHistoryModalOpen(true)
+  }
+
+  const handleManageGroups = async (asset) => {
+    setSelectedAsset(asset)
+    await loadAssetGroups(asset.assetId)
+    setIsGroupModalOpen(true)
+  }
+
+  const handleSaveGroups = async () => {
+    try {
+      // Use PUT to replace all groups for this asset
+      await assetAPI.replaceGroups(selectedAsset.assetId, {
+        groupIds: selectedGroupIds
+      })
+      await loadAssets()
+      setIsGroupModalOpen(false)
+      setSelectedAsset(null)
+      setSelectedGroupIds([])
+      toast.success('Groups updated successfully')
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const toggleGroupSelection = (groupId) => {
+    if (selectedGroupIds.includes(groupId)) {
+      setSelectedGroupIds(selectedGroupIds.filter(id => id !== groupId))
+    } else {
+      setSelectedGroupIds([...selectedGroupIds, groupId])
     }
   }
 
@@ -156,6 +231,7 @@ const Assets = () => {
                 <th>Invested</th>
                 <th>Current Value</th>
                 <th>Returns</th>
+                <th>Groups</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -173,13 +249,44 @@ const Assets = () => {
                     {asset.percentageReturn?.toFixed(2)}%
                   </td>
                   <td>
-                    <button
-                      className="btn btn-danger"
-                      style={{ padding: '6px 12px' }}
-                      onClick={() => handleDelete(asset.assetId, asset.assetName)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {asset.groupNames && asset.groupNames.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {asset.groupNames.map((name, idx) => (
+                          <span key={idx} className="badge badge-info" style={{ fontSize: '11px' }}>
+                            {name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span style={{ color: '#9ca3af', fontSize: '12px' }}>None</span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="flex gap-2">
+                      <button
+                        className="btn btn-primary"
+                        style={{ padding: '6px 12px' }}
+                        onClick={() => handleManageGroups(asset)}
+                        title="Manage Groups"
+                      >
+                        <Users size={14} />
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ padding: '6px 12px' }}
+                        onClick={() => handleViewHistory(asset)}
+                        title="View History"
+                      >
+                        <TrendingUp size={14} />
+                      </button>
+                      <button
+                        className="btn btn-danger"
+                        style={{ padding: '6px 12px' }}
+                        onClick={() => handleDelete(asset.assetId, asset.assetName)}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -406,6 +513,146 @@ const Assets = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Asset History Modal with Chart */}
+      <Modal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        title={`Price History - ${selectedAsset?.assetName}`}
+      >
+        <div style={{ marginBottom: '20px' }}>
+          <AssetHistoryChart historyData={assetHistory} />
+        </div>
+
+        {assetHistory.length > 0 && (
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
+              Transaction History
+            </h3>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Action</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assetHistory.map((history) => (
+                  <tr key={history.historyId}>
+                    <td>{new Date(history.actionDate).toLocaleDateString()}</td>
+                    <td>
+                      <span className={`badge ${
+                        history.actionType === 'BUY' ? 'badge-success' :
+                        history.actionType === 'SELL' ? 'badge-danger' :
+                        'badge-info'
+                      }`}>
+                        {history.actionType}
+                      </span>
+                    </td>
+                    <td>{formatCurrency(history.priceAtThatTime)}</td>
+                    <td>{history.quantityChanged || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Modal>
+
+      {/* Manage Groups Modal */}
+      <Modal
+        isOpen={isGroupModalOpen}
+        onClose={() => {
+          setIsGroupModalOpen(false)
+          setSelectedAsset(null)
+          setSelectedGroupIds([])
+        }}
+        title={`Manage Groups - ${selectedAsset?.assetName}`}
+      >
+        <div style={{ marginBottom: '16px' }}>
+          <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '12px' }}>
+            Select which groups this asset belongs to:
+          </p>
+
+          {allGroups.length === 0 ? (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280', background: '#f9fafb', borderRadius: '6px' }}>
+              No groups available. Create groups first in the Groups page.
+            </div>
+          ) : (
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              {allGroups.map((group) => (
+                <div
+                  key={group.groupId}
+                  style={{
+                    padding: '12px',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '6px',
+                    marginBottom: '8px',
+                    cursor: 'pointer',
+                    background: selectedGroupIds.includes(group.groupId) ? '#eff6ff' : 'white',
+                    transition: 'all 0.2s'
+                  }}
+                  onClick={() => toggleGroupSelection(group.groupId)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedGroupIds.includes(group.groupId)}
+                      onChange={() => toggleGroupSelection(group.groupId)}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+                        {group.groupName}
+                      </div>
+                      {group.description && (
+                        <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                          {group.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
+          background: '#f9fafb',
+          borderRadius: '6px',
+          fontSize: '14px',
+          color: '#374151'
+        }}>
+          <strong>Selected:</strong> {selectedGroupIds.length} group{selectedGroupIds.length !== 1 ? 's' : ''}
+        </div>
+
+        <div className="flex gap-2" style={{ marginTop: '20px' }}>
+          <button
+            className="btn btn-primary"
+            style={{ flex: 1 }}
+            onClick={handleSaveGroups}
+            disabled={allGroups.length === 0}
+          >
+            Save Groups
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => {
+              setIsGroupModalOpen(false)
+              setSelectedAsset(null)
+              setSelectedGroupIds([])
+            }}
+          >
+            Cancel
+          </button>
+        </div>
       </Modal>
     </div>
   )
