@@ -1,0 +1,3 @@
+com\portfolio\service\PortfolioServiceTest.class
+com\portfolio\controller\PortfolioControllerTest.class
+com\portfolio\repository\PortfolioRepositoryTest.class
